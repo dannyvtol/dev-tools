@@ -2,28 +2,34 @@ version: '3.8'
 services:
   traefik:
     image: traefik:v2.10
-    command: --api.insecure=true --providers.docker
+    command:
+      - --api.insecure=true
+      - --providers.docker
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --entryPoints.http.address=:80
+      - --entryPoints.https.address=:443
     ports:
       - '80:80'
       - '443:443'
-      - '8080:8080'
+      - '8080'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./certs-traefik.yml:/etc/traefik/dynamic/certs-traefik.yml
+      - ./certs:/certs
     labels:
-      - traefik.http.routers.traefik.rule=Host(`traefik.denv.localhost`)
+      - traefik.http.routers.traefik.entrypoints=http
+      - traefik.http.services.traefik.loadbalancer.server.port=8080
     networks:
       - denv
-    depends_on:
-      - traefik
 
   mailhog:
     image: mailhog/mailhog
     ports:
-      - '8000'
+      - '8025'
       - '1025:1025'
     labels:
       - traefik.http.routers.mailhog.rule=Host(`mailhog.denv.localhost`)
-      - traefik.http.services.mailhog.loadbalancer.server.port=8000
+      - traefik.http.services.mailhog.loadbalancer.server.port=8025
     networks:
       - denv
     depends_on:
