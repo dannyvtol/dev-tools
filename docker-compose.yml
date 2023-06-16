@@ -1,0 +1,52 @@
+version: '3.8'
+services:
+  traefik:
+    image: traefik:v2.10
+    command: --api.insecure=true --providers.docker
+    ports:
+      - '80:80'
+      - '443:443'
+      - '8080:8080'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - traefik.http.routers.traefik.rule=Host(`traefik.denv.localhost`)
+    networks:
+      - denv
+    depends_on:
+      - traefik
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - '8000'
+      - '1025:1025'
+    labels:
+      - traefik.http.routers.mailhog.rule=Host(`mailhog.denv.localhost`)
+      - traefik.http.services.mailhog.loadbalancer.server.port=8000
+    networks:
+      - denv
+    depends_on:
+      - traefik
+
+  portainer:
+    image: portainer/portainer-ce:2.18.3-alpine
+    ports:
+      - '9000'
+    labels:
+      - traefik.http.routers.portainer.rule=Host(`portainer.denv.localhost`)
+      - traefik.http.services.portainer.loadbalancer.server.port=9000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - denv
+    depends_on:
+      - traefik
+
+volumes:
+  portainer_data: {}
+
+networks:
+  denv:
+    driver: bridge
