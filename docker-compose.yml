@@ -17,10 +17,10 @@ services:
       - ./certs-traefik.yml:/etc/traefik/dynamic/certs-traefik.yml
       - ./certs:/certs
     labels:
-      - traefik.http.routers.traefik.entrypoints=http
+      - traefik.http.routers.traefik.rule=Host(`traefik.denv.localhost`)
       - traefik.http.services.traefik.loadbalancer.server.port=8080
     networks:
-      - denv
+      - proxy
 
   mailhog:
     image: mailhog/mailhog
@@ -31,7 +31,7 @@ services:
       - traefik.http.routers.mailhog.rule=Host(`mailhog.denv.localhost`)
       - traefik.http.services.mailhog.loadbalancer.server.port=8025
     networks:
-      - denv
+      - proxy
     depends_on:
       - traefik
 
@@ -46,7 +46,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
     networks:
-      - denv
+      - proxy
     depends_on:
       - traefik
 
@@ -54,5 +54,5 @@ volumes:
   portainer_data: {}
 
 networks:
-  denv:
+  proxy:
     driver: bridge
