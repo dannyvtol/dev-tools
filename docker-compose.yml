@@ -2,9 +2,11 @@ version: '3.8'
 services:
   traefik:
     image: traefik:v2.10
+    platform: linux/arm64/v8
     command:
       - --api.insecure=true
       - --providers.docker
+      - --providers.docker.exposedByDefault=false
       - --providers.file.directory=/etc/traefik/dynamic
       - --entryPoints.http.address=:80
       - --entryPoints.https.address=:443
@@ -17,17 +19,20 @@ services:
       - ./certs-traefik.yml:/etc/traefik/dynamic/certs-traefik.yml
       - ./certs:/certs
     labels:
+      - traefik.enable=true
       - traefik.http.routers.traefik.rule=Host(`traefik.denv.localhost`)
       - traefik.http.services.traefik.loadbalancer.server.port=8080
     networks:
       - proxy
 
   mailhog:
-    image: mailhog/mailhog
+    image: jcalonso/mailhog
+    platform: linux/arm64
     ports:
       - '8025'
       - '1025:1025'
     labels:
+      - traefik.enable=true
       - traefik.http.routers.mailhog.rule=Host(`mailhog.denv.localhost`)
       - traefik.http.services.mailhog.loadbalancer.server.port=8025
     networks:
@@ -36,10 +41,12 @@ services:
       - traefik
 
   portainer:
-    image: portainer/portainer-ce:2.18.3-alpine
+    image: portainer/portainer-ce:2.18.4-alpine
+    platform: linux/arm64
     ports:
       - '9000'
     labels:
+      - traefik.enable=true
       - traefik.http.routers.portainer.rule=Host(`portainer.denv.localhost`)
       - traefik.http.services.portainer.loadbalancer.server.port=9000
     volumes:
