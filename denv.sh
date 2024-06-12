@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ACTION=$1
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+SCRIPT_DIR=$( cd "$(dirname "$( readlink -f "$0")")" && pwd )
 
 help() {
     echo 'Dash is a Docker toolset for managing multiple docker-projects'
