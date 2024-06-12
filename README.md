@@ -12,13 +12,13 @@ The Shell script accepts four differen command:
 | help    | Shows the list op commands                    |
 
 ## Services
-DEnv provides three handy services. Traefik Reverse Proxy, Portainer and MailHog. The services are accasible through the browser on the following urls:
+DEnv provides three handy services. Traefik Reverse Proxy, Portainer and MailPit. The services are accessible through the browser on the following urls:
 
 | Service   | Url
 |-----------|--------------------------|
 | Traefik   | traefik.denv.localhost   |
 | Portainer | portainer.denv.localhost |
-| MailHog   | mailhog.denv.localhost   |
+| MailPit   | mailpit.denv.localhost   |
 
 ### Add a service to Traefik
 Before your container is exposed by Traefik, you should configure it. The configuration is fairly easy to setup.
