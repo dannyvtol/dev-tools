@@ -1,7 +1,6 @@
 services:
   traefik:
-    image: traefik:v2.10
-    platform: linux/arm64/v8
+    image: traefik:v3.1.2
     command:
       - --api.insecure=true
       - --providers.docker
@@ -12,21 +11,25 @@ services:
     ports:
       - '80:80'
       - '443:443'
-      - '8080'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./certs-traefik.yml:/etc/traefik/dynamic/certs-traefik.yml
       - ./certs:/certs
     labels:
       - traefik.enable=true
+      - traefik.http.routers.traefik.entryPoints=http
       - traefik.http.routers.traefik.rule=Host(`traefik.denv.localhost`)
+      - traefik.http.routers.traefik.service=traefik
       - traefik.http.services.traefik.loadbalancer.server.port=8080
+      - traefik.http.routers.traefik-https.entryPoints=https
+      - traefik.http.routers.traefik-https.rule=Host(`traefik.denv.localhost`)
+      - traefik.http.routers.traefik-https.service=traefik
+      - traefik.http.routers.traefik-https.tls=true
     networks:
       - proxy
 
   mailpit:
-    image: axllent/mailpit
-    platform: linux/arm64
+    image: axllent/mailpit:v1.20.2
     ports:
       - '8025'
       - '1025:1025'
@@ -40,8 +43,7 @@ services:
       - traefik
 
   portainer:
-    image: portainer/portainer-ce:2.18.4-alpine
-    platform: linux/arm64
+    image: portainer/portainer-ce:2.20.3-alpine
     ports:
       - '9000'
     labels:
