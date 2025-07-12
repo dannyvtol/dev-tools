@@ -1,54 +1,63 @@
 services:
   traefik:
-    image: traefik:v3.1.2
+    image: traefik:v3.4.4
+    restart: unless-stopped
     command:
       - --api.insecure=true
       - --providers.docker
       - --providers.docker.exposedByDefault=false
       - --providers.file.directory=/etc/traefik/dynamic
+      - --ping=true
       - --entryPoints.http.address=:80
-      - --entryPoints.https.address=:443
+    environment:
+      - TRAEFIK_LOG_LEVEL=INFO
+      - TRAEFIK_ACCESS_LOG=true
     ports:
       - '80:80'
-      - '443:443'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./certs-traefik.yml:/etc/traefik/dynamic/certs-traefik.yml
-      - ./certs:/certs
     labels:
       - traefik.enable=true
       - traefik.http.routers.traefik.entryPoints=http
-      - traefik.http.routers.traefik.rule=Host(`traefik.denv.localhost`)
+      - traefik.http.routers.traefik.rule=Host(`traefik.localhost`)
       - traefik.http.routers.traefik.service=traefik
       - traefik.http.services.traefik.loadbalancer.server.port=8080
-      - traefik.http.routers.traefik-https.entryPoints=https
-      - traefik.http.routers.traefik-https.rule=Host(`traefik.denv.localhost`)
-      - traefik.http.routers.traefik-https.service=traefik
-      - traefik.http.routers.traefik-https.tls=true
     networks:
       - proxy
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   mailpit:
-    image: axllent/mailpit:v1.20.2
+    image: axllent/mailpit:v1.27.1
+    restart: unless-stopped
     ports:
       - '8025'
       - '1025:1025'
     labels:
       - traefik.enable=true
-      - traefik.http.routers.mailpit.rule=Host(`mailpit.denv.localhost`)
+      - traefik.http.routers.mailpit.rule=Host(`mailpit.localhost`)
       - traefik.http.services.mailpit.loadbalancer.server.port=8025
     networks:
       - proxy
     depends_on:
       - traefik
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8025"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   portainer:
-    image: portainer/portainer-ce:2.20.3-alpine
+    image: portainer/portainer-ce:2.31.3-alpine
+    restart: unless-stopped
     ports:
       - '9000'
     labels:
       - traefik.enable=true
-      - traefik.http.routers.portainer.rule=Host(`portainer.denv.localhost`)
+      - traefik.http.routers.portainer.rule=Host(`portainer.localhost`)
       - traefik.http.services.portainer.loadbalancer.server.port=9000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -57,6 +66,11 @@ services:
       - proxy
     depends_on:
       - traefik
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   portainer_data: {}
