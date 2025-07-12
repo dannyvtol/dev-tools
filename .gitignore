@@ -1,0 +1,6 @@
+# Traefik related files
+certificates/*
+certificates-traefik.yml
+
+# Docker related files
+docker-compose.override.yml
